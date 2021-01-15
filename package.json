@@ -1,0 +1,26 @@
+{
+  "name": "tiny-language",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "w": "rm -rf out && tsc -w -p ./",
+    "t": "mocha -timeout 100000",
+    "t:d": "node --inspect-brk=5858 node_modules/.bin/mocha -timeout 100000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thzt/tiny-language.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thzt/tiny-language/issues"
+  },
+  "homepage": "https://github.com/thzt/tiny-language#readme",
+  "devDependencies": {
+    "mocha": "^8.2.1",
+    "typescript": "^4.1.3"
+  }
+}
