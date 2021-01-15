@@ -4,6 +4,7 @@
     "module": "CommonJS",
     "lib": [
       "ESNext",
+      "dom",
     ],
     "sourceMap": true,
     "rootDir": "./src/",

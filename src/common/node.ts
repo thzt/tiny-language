@@ -6,6 +6,7 @@ export interface Node {
 }
 
 export enum NodeKind {
+  Program = 'Program',
   Atom = 'Atom',
   List = 'List',
 };

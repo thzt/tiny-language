@@ -22,7 +22,7 @@ export function scanIdentifier(sourceCode, pos, length) {
  * 是标识符的开头
  */
 export function isIdentifierStart(ch) {
-  return ch >= 'a' && ch <= 'z';
+  return (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9');
 }
 
 /**

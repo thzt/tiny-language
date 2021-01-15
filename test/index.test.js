@@ -6,50 +6,82 @@ describe('tiny-language', () => {
     it('Atom', async () => {
       const code = `a`;
       const ast = letParse()(code);
-
-      assert(ast.nodeKind === 'Atom');
-
-      assert(ast.value.tokenKind === 'Identifier');
-      assert(ast.value.text === 'a');
-
       debugger
     });
 
     it('List', async () => {
       const code = `(a)`;
       const ast = letParse()(code);
-
-      assert(ast.nodeKind === 'List');
-      assert(ast.value[0].nodeKind === 'Atom');
-
-      assert(ast.value[0].value.tokenKind === 'Identifier');
-      assert(ast.value[0].value.text === 'a');
-
       debugger
     });
 
-    it.only('Expr', async () => {
+    it('Expr', async () => {
       const code = `(a (b))`;
       const ast = letParse()(code);
+      debugger
+    });
 
-      assert(ast.nodeKind === 'List');
-      assert(ast.value[0].nodeKind === 'Atom');
-      assert(ast.value[0].value.tokenKind === 'Identifier');
-      assert(ast.value[0].value.text === 'a');
-
-      assert(ast.value[1].nodeKind === 'List');
-      assert(ast.value[1].value[0].nodeKind === 'Atom');
-      assert(ast.value[1].value[0].value.tokenKind === 'Identifier');
-      assert(ast.value[1].value[0].value.text === 'b');
-
+    it('Program', async () => {
+      const code = `
+        (define f (lambda (x) (add x 1)))
+        (display (f 2))
+      `;
+      const ast = letParse()(code);
       debugger
     });
   });
 
   describe('eval', () => {
-    it('success', async () => {
-      letEval();
-      assert(true);
+    it('dynamic eval', async () => {
+      const code = `
+        (define f (lambda (x) (lambda (y) (add x y))))
+        (define g (f 1))
+        (define x 100)
+        (display (g 2))
+      `;
+      const ast = letParse()(code);
+      letEval()(ast);
+      debugger;
+    });
+
+    it('lexical eval', async () => {
+      process.env.lexical = '1';
+
+      const code = `
+      (define f (lambda (x)
+        (lambda (y) (add x y))))
+
+      (define g (f 1))
+      (define x 100)
+      (display (g 2))
+      `;
+      const ast = letParse()(code);
+      letEval()(ast);
+      debugger;
+    });
+
+    it('lexical eval: another', async () => {
+      process.env.lexical = '1';
+
+      const code = `
+      (define f (lambda (x)
+        (lambda (y)
+          (lambda (z) (add x y z)))))
+
+      (define gx1 (f 1))
+      (define gx2 (f 2))
+
+      (define hx1y3 (gx1 3))
+      (define hx2y4 (gx2 4))
+
+      (display (hx1y3 5))
+      (display (hx1y3 6))
+
+      (display (hx2y4 7))
+      (display (hx2y4 8))
+      `;
+      const ast = letParse()(code);
+      letEval()(ast);
       debugger;
     });
   });

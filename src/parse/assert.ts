@@ -1,4 +1,4 @@
-import { Token, TokenKind } from "./token";
+import { Token, TokenKind } from "../common/token";
 
 /**
   * 断言当前 token 的名字

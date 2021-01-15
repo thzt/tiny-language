@@ -1,25 +1,25 @@
-import { createNode, Node, NodeKind } from "./node";
-import { createToken, Token, TokenKind } from "./token";
+import { createNode, Node, NodeKind } from "../common/node";
+import { createToken, Token, TokenKind } from "../common/token";
 import { isIdentifierStart, scanIdentifier } from "./scan";
 import { assert } from "./assert";
 
-export const letParse = () => {
+export function letParse() {
   let sourceCode: string;
   let length: number;
   let pos: number;
   let token: Token;
 
   return parse;
-
-  // ---- ---- ---- ---- ---- ---- ---- ---- ----
+  // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 
   /**
    * syntax
    * 
+   * Program = Exprs
+   * Exprs = Expr Exprs
    * Expr = Atom | List
    * Atom = Identifier
    * List = '(' Exprs ')'
-   * Exprs = Expr Exprs
    */
   function parse(code): Node {
     sourceCode = code;
@@ -28,47 +28,36 @@ export const letParse = () => {
 
     nextToken();
     assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
-    const exprNode = parseExpr();
+    const programNode = parseProgram();
 
-    nextToken();
     assert(token, [TokenKind.EndOfFile]);
-
-    return exprNode;
+    return programNode;
   }
 
   /**
-   * Expr = Atom | List
+   * Program = Exprs
    */
-  function parseExpr() {
+  function parseProgram() {
     assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
 
-    if (token.tokenKind === TokenKind.Identifier) {
-      return createNode(NodeKind.Atom, token);
-    }
-
-    assert(token, [TokenKind.LeftBracket]);
-    const listNode = parseList();
-    return listNode;
-  }
-
-  /**
-   * List = '(' Exprs ')'
-   */
-  function parseList() {
-    assert(token, [TokenKind.LeftBracket]);
-
     const exprNodes = parseExprs();
-    return createNode(NodeKind.List, exprNodes);
+    return createNode(NodeKind.Program, exprNodes);
   }
 
   /**
    * Exprs = Expr Exprs
    */
   function parseExprs(): Node[] {
+    assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
+
     const exprNodes = [];
     while (true) {
-      nextToken();
-      assert(token, [TokenKind.RightBracket, TokenKind.Identifier, TokenKind.LeftBracket]);
+      assert(token, [TokenKind.RightBracket, TokenKind.EndOfFile, TokenKind.Identifier, TokenKind.LeftBracket]);
+
+      // 遇到 EOF 说明已处理完
+      if (token.tokenKind === TokenKind.EndOfFile) {
+        break;
+      }
 
       // 遇到右括号，说明当前层级的 Exprs 处理完毕
       if (token.tokenKind === TokenKind.RightBracket) {
@@ -78,12 +67,47 @@ export const letParse = () => {
       assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
       const exprNode = parseExpr();
       exprNodes.push(exprNode);
+
+      nextToken();
     }
 
     return exprNodes;
   }
 
-  // ---- ---- ---- ---- ---- ---- ---- ---- ----
+  /**
+   * Expr = Atom | List
+   */
+  function parseExpr() {
+    assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
+
+    if (token.tokenKind === TokenKind.Identifier) {
+      return parseAtom();
+    }
+
+    assert(token, [TokenKind.LeftBracket]);
+    return parseList();
+  }
+
+  function parseAtom() {
+    assert(token, [TokenKind.Identifier]);
+
+    return createNode(NodeKind.Atom, token);
+  }
+
+  /**
+   * List = '(' Exprs ')'
+   */
+  function parseList() {
+    assert(token, [TokenKind.LeftBracket]);
+
+    nextToken();
+    assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
+
+    const exprNodes = parseExprs();
+    return createNode(NodeKind.List, exprNodes);
+  }
+
+  // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 
   /**
    * 向后扫描一个 token
