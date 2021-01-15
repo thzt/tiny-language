@@ -17,7 +17,6 @@
         "t:d"
       ],
       "port": 5858,
-      "stopOnEntry": false,
     }
   ]
 }

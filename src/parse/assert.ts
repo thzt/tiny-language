@@ -1,8 +1,5 @@
 import { Token, TokenKind } from "../common/token";
 
-/**
-  * 断言当前 token 的名字
-  */
 export function assert(token: Token, tokenKinds: TokenKind[]) {
   if (tokenKinds.includes(token.tokenKind)) {
     return;

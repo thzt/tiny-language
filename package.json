@@ -6,7 +6,7 @@
   "scripts": {
     "w": "rm -rf out && tsc -w -p ./",
     "t": "mocha -timeout 100000",
-    "t:d": "node --inspect-brk=5858 node_modules/.bin/mocha -timeout 100000"
+    "t:d": "node --inspect=5858 node_modules/.bin/mocha -timeout 100000"
   },
   "repository": {
     "type": "git",

@@ -10,16 +10,16 @@ export function letParse() {
   let token: Token;
 
   return parse;
+
   // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 
   /**
    * syntax
    * 
-   * Program = Exprs
-   * Exprs = Expr Exprs
    * Expr = Atom | List
    * Atom = Identifier
    * List = '(' Exprs ')'
+   * Exprs = Expr Exprs
    */
   function parse(code): Node {
     sourceCode = code;
@@ -28,50 +28,11 @@ export function letParse() {
 
     nextToken();
     assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
-    const programNode = parseProgram();
+    const exprNode = parseExpr();
 
+    nextToken();
     assert(token, [TokenKind.EndOfFile]);
-    return programNode;
-  }
-
-  /**
-   * Program = Exprs
-   */
-  function parseProgram() {
-    assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
-
-    const exprNodes = parseExprs();
-    return createNode(NodeKind.Program, exprNodes);
-  }
-
-  /**
-   * Exprs = Expr Exprs
-   */
-  function parseExprs(): Node[] {
-    assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
-
-    const exprNodes = [];
-    while (true) {
-      assert(token, [TokenKind.RightBracket, TokenKind.EndOfFile, TokenKind.Identifier, TokenKind.LeftBracket]);
-
-      // 遇到 EOF 说明已处理完
-      if (token.tokenKind === TokenKind.EndOfFile) {
-        break;
-      }
-
-      // 遇到右括号，说明当前层级的 Exprs 处理完毕
-      if (token.tokenKind === TokenKind.RightBracket) {
-        break;
-      }
-
-      assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
-      const exprNode = parseExpr();
-      exprNodes.push(exprNode);
-
-      nextToken();
-    }
-
-    return exprNodes;
+    return exprNode;
   }
 
   /**
@@ -100,17 +61,38 @@ export function letParse() {
   function parseList() {
     assert(token, [TokenKind.LeftBracket]);
 
-    nextToken();
-    assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
-
     const exprNodes = parseExprs();
     return createNode(NodeKind.List, exprNodes);
+  }
+
+  /**
+   * Exprs = Expr Exprs
+   */
+  function parseExprs(): Node[] {
+    assert(token, [TokenKind.LeftBracket]);
+
+    const exprNodes = [];
+    while (true) {
+      nextToken();
+      assert(token, [TokenKind.RightBracket, TokenKind.Identifier, TokenKind.LeftBracket]);
+
+      // 遇到右括号，说明当前层级的 Exprs 处理完毕
+      if (token.tokenKind === TokenKind.RightBracket) {
+        break;
+      }
+
+      assert(token, [TokenKind.Identifier, TokenKind.LeftBracket]);
+      const exprNode = parseExpr();
+      exprNodes.push(exprNode);
+    }
+
+    return exprNodes;
   }
 
   // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 
   /**
-   * 向后扫描一个 token
+   * 向后扫描下一个 token，并修改当前 `token` 变量
    */
   function nextToken() {
     while (true) {
@@ -131,6 +113,7 @@ export function letParse() {
           continue;
 
         default:
+          // 扫描一个完整的标识符
           if (isIdentifierStart(ch)) {
             const end = scanIdentifier(sourceCode, pos, length);
             const text = sourceCode.slice(pos, end);
